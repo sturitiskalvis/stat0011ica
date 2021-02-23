@@ -1,0 +1,72 @@
+#import the needed libraries
+library("tseries")
+library("zoo")
+library("moments")
+library("car")
+library("ggplot2")
+
+#Extract adjusted weekly closing prices of the chosen stock indecies S&P 500 and FTSE100, from 1st Jan 2000 to 31st Dec 2020
+sp_price <- as.data.frame(get.hist.quote(instrument = "^GSPC", start = "2000-01-19", end = "2020-01-19", quote="AdjClose", compression = "w"))
+ftse_price <- as.data.frame(get.hist.quote(instrument = "^FTSE", start = "2000-01-19", end = "2020-01-19", quote="AdjClose", compression = "w"))
+
+
+#obtain weeky returns
+sp_log_dif <- diff(log(sp_price[,1]))
+ftse_log_dif<- diff(log(ftse_price[,1]))
+
+
+#plot of the weekly returns
+plot(sp_log_dif, type = "l", ylab = "Log difference", xlab = "Year", main = "Weekly S&P500 log-returns", xaxt = "n")
+axis(1, at= seq(from = 1, to =  1043, by =52), labels = c(2000:2020))
+abline(a=0, b=0, col = "red") #volatility clusters can be observed
+
+plot(ftse_log_dif, type = "l", ylab = "Log difference", xlab = "Year",  main = "Weekly FTSE100 log-returns", xaxt = "n")
+axis(1, at= seq(from = 1, to =  1043, by =52), labels = c(2000:2020))
+abline(a=0, b=0, col = "blue") #volatility clusters can be observed
+
+#plot density 
+densityPlot(sp_log_dif, xlab = "Log-returns", main = "S&P500 weekly log-return density", method = "kernel", adjust = 0.5)
+abline(v = 0, col = "red")
+
+densityPlot(ftse_log_dif, xlab = "Log-returns", main = "FTSE100 weekly log-return density", method = "kernel", adjust = 0.5)
+abline(v = 0, col = "blue")
+
+
+#Obtain some sample statistics
+summary(sp_log_dif)
+summary(ftse_log_dif)
+
+#standard deviation
+sd(sp_log_dif)
+sd(ftse_log_dif)
+
+#skewness of the data. Should be around 0 for Normal
+skewness(sp_log_dif)
+skewness(ftse_log_dif)
+
+#kurtosis. Should be not too much higer than 3 for Normal. If much higer than 3, fat tails.
+kurtosis(sp_log_dif)
+kurtosis(ftse_log_dif)
+
+#QQ Normal
+qqPlot(sp_log_dif, envelope = F, xlab = "Normal quantiles", ylab ="Observed data", main = "QQ Plot of weekly S&P returns", col.lines = "red")
+qqPlot(ftse_log_dif, envelope = F, xlab = "Normal quantiles", ylab ="Observed data", main = "QQ Plot of weekly FTSE100 returns")
+
+
+#KS test, wether data was pulled from Normal (p value = probability that data comes from  normal). 
+#However for large samples tests are almost certain to reject H0 as real data is almost never normally distributed.
+
+#
+ks.test(x= sp_log_dif, pnorm)
+ks.test(x= ftse_log_dif, pnorm)
+#
+shapiro.test(sp_log_dif)
+shapiro.test(ftse_log_dif)
+
+#
+jarque.bera.test(sp_log_dif)
+jarque.bera.test(ftse_log_dif)
+
+
+
+
